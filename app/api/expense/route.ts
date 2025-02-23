@@ -20,7 +20,14 @@ export async function GET() {
 // ✅ CREATE Expense (POST)
 export async function POST(req: Request) {
   try {
-    const { title, amount, qty, uom, expenseDate, userId } = await req.json();
+    const requestBody = await req.json();
+
+    // Guard against null or invalid payload
+    if (!requestBody || typeof requestBody !== 'object') {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
+
+    const { title, amount, qty, uom, expenseDate, userId } = requestBody;
 
     // Validate data
     if (!title || !amount || !qty || !uom || !expenseDate || !userId) {
