@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {prisma} from "../../lib/db"; // Adjust this import based on your project
+import prisma from "../../lib/db"; // Adjust this import based on your project
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
