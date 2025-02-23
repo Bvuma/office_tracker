@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/db"; // Ensure this is your Prisma instance
+import prisma from "@/lib/db"; // Ensure this is your Prisma instance
 
 // GET Expense by ID
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {

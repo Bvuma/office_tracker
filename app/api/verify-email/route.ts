@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import {prisma} from '../../../lib/db'; // Adjust based on your Prisma setup
+import prisma from '../../../lib/db'; // Adjust based on your Prisma setup
 
 export async function POST(req: Request) {
   try {
