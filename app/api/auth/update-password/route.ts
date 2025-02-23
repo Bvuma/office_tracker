@@ -1,4 +1,4 @@
-import  prisma  from "@/lib/db"; // Import Prisma singleton
+import  {prisma}  from "@/lib/db"; // Import Prisma singleton
 import bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
