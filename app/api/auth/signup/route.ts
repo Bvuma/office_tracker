@@ -1,4 +1,4 @@
-import prisma from "@/lib/db"; // Import singleton Prisma instance
+import {prisma} from "@/lib/db"; // Import singleton Prisma instance
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import crypto from "crypto";

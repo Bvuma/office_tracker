@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db"; // Use singleton Prisma instance
+import {prisma} from "@/lib/db"; // Use singleton Prisma instance
 
 // ✅ GET All Expenses
 export async function GET() {
