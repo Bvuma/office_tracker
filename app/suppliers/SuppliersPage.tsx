@@ -4,15 +4,18 @@
 import { useState, useEffect } from "react";
 
 interface Supplier {
-  id: number;
-  name: string;
-  contact: string;
-  address: string;
-  email: string;
-  createdAt: string;
-  createdBy: number;
-  updatedAt: string;
-}
+    id: number;
+    name: string;
+    contact: string;
+    address: string;
+    email: string;
+    createdAt: string;
+    createdBy: number;
+    updatedAt: string;
+    creator?: { // Added to include creator data
+      username: string;
+    };
+  }
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -216,7 +219,9 @@ export default function SuppliersPage() {
               <td className="border p-2">{supplier.contact}</td>
               <td className="border p-2">{supplier.address}</td>
               <td className="border p-2">{supplier.email}</td>
-              <td className="border p-2">{supplier.createdBy}</td>
+              <td className="border p-2">
+                {supplier.creator ? supplier.creator.username : "N/A"}
+              </td>
               <td className="border p-2">
                 <button
                   onClick={() => handleEditClick(supplier)}

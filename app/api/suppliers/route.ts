@@ -5,16 +5,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 export async function GET() {
-  try {
-    const suppliers = await prisma.supplier.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(suppliers, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching suppliers", error);
-    return NextResponse.json({ error: "Failed to fetch suppliers" }, { status: 500 });
+    try {
+      const suppliers = await prisma.supplier.findMany({
+        orderBy: { createdAt: "desc" },
+        include: { 
+          creator: { 
+            select: { username: true } // Or choose any field you want to display (like fullName, name, etc.)
+          } 
+        },
+      });
+      return NextResponse.json(suppliers, { status: 200 });
+    } catch (error) {
+      console.error("Error fetching suppliers", error);
+      return NextResponse.json({ error: "Failed to fetch suppliers" }, { status: 500 });
+    }
   }
-}
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
