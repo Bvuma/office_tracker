@@ -33,10 +33,10 @@ export default function CustomersPage() {
     address: "",
     contact: "",
     email: "",
-    type: "",
+    type: "Individual", // default value
   });
 
-  // Fetch customers whenever the page or limit changes
+  // Fetch customers on component mount and on pagination changes
   useEffect(() => {
     async function fetchCustomers() {
       const res = await fetch(`/api/customers?page=${currentPage}&limit=${limit}`);
@@ -49,8 +49,8 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [currentPage, limit]);
 
-  // Handle input changes for the form
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Handle form input changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -64,8 +64,7 @@ export default function CustomersPage() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        // Optionally, refetch the current page data after creation
-        setFormData({ c_name: "", address: "", contact: "", email: "", type: "" });
+        setFormData({ c_name: "", address: "", contact: "", email: "", type: "Individual" });
         setIsCreating(false);
         const fetchRes = await fetch(`/api/customers?page=${currentPage}&limit=${limit}`);
         if (fetchRes.ok) {
@@ -91,7 +90,7 @@ export default function CustomersPage() {
       });
       if (res.ok) {
         setEditCustomer(null);
-        setFormData({ c_name: "", address: "", contact: "", email: "", type: "" });
+        setFormData({ c_name: "", address: "", contact: "", email: "", type: "Individual" });
         setIsEditing(false);
         const fetchRes = await fetch(`/api/customers?page=${currentPage}&limit=${limit}`);
         if (fetchRes.ok) {
@@ -105,7 +104,7 @@ export default function CustomersPage() {
     }
   };
 
-  // Delete a customer and refetch data
+  // Delete a customer
   const handleDelete = async (id: number) => {
     if (confirm("Are you sure you want to delete this customer?")) {
       try {
@@ -124,7 +123,7 @@ export default function CustomersPage() {
     }
   };
 
-  // Prepare form for editing
+  // Prepare form for editing a customer
   const handleEditClick = (customer: Customer) => {
     setEditCustomer(customer);
     setFormData({
@@ -143,7 +142,7 @@ export default function CustomersPage() {
     setIsCreating(false);
     setIsEditing(false);
     setEditCustomer(null);
-    setFormData({ c_name: "", address: "", contact: "", email: "", type: "" });
+    setFormData({ c_name: "", address: "", contact: "", email: "", type: "Individual" });
   };
 
   // Pagination functions
@@ -162,7 +161,7 @@ export default function CustomersPage() {
         onClick={() => {
           setIsCreating(true);
           setIsEditing(false);
-          setFormData({ c_name: "", address: "", contact: "", email: "", type: "" });
+          setFormData({ c_name: "", address: "", contact: "", email: "", type: "Individual" });
         }}
         className="mb-4 px-4 py-2 bg-blue-500 text-white"
       >
@@ -219,14 +218,16 @@ export default function CustomersPage() {
           </div>
           <div className="mb-2">
             <label className="block mb-1">Type:</label>
-            <input
+            <select
               name="type"
-              type="text"
               value={formData.type}
               onChange={handleChange}
               required
               className="border px-2 py-1 w-full"
-            />
+            >
+              <option value="Individual">Individual</option>
+              <option value="Company/Business">Company/Business</option>
+            </select>
           </div>
           <div>
             <button type="submit" className="mr-2 px-4 py-2 bg-green-500 text-white">
