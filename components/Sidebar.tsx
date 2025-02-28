@@ -1,106 +1,108 @@
+// components/Sidebar.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
   const { data: session } = useSession();
-  // Default to "staff" if no role is provided.
-  const userRole = session?.user?.role || "staff";
-  const [mobileOpen, setMobileOpen] = useState(false);
+  // Get the user role; default to "user" if not available.
+  const userRole = session?.user?.role || "user";
 
-  // Define your navigation items with their allowed roles.
-  const navItems = [
-    { label: "Dashboard", href: "/dashboard", roles: ["staff", "admin"] },
-    { label: "Customers", href: "/customers", roles: ["staff", "admin"] },
-    { label: "Purchases", href: "/purchases", roles: ["staff", "admin"] },
-    { label: "Expenses", href: "/expenses", roles: ["staff", "admin"] },
-    { label: "Sales", href: "/sales", roles: ["staff", "admin"] },
-    { label: "Tenders", href: "/tenders", roles: ["staff", "admin"] },
-    { label: "Sale Purchases", href: "/salePurchases", roles: ["staff", "admin"] },
-    { label: "Suppliers", href: "/suppliers", roles: ["staff", "admin"] },
-    { label: "Users", href: "/users", roles: ["admin"] },
-    { label: "Roles", href: "/roles", roles: ["admin"] },
+  // Define your common menu items.
+  const commonItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Customers", href: "/customers" },
+    { label: "Purchases", href: "/purchases" },
+    { label: "Expenses", href: "/expenses" },
+    { label: "Sales", href: "/sales" },
+    { label: "Tenders", href: "/tenders" },
+    { label: "Suppliers", href: "/suppliers" },
+    { label: "Sale Purchases", href: "/salePurchases" },
   ];
+
+  // Define items that only admins should see.
+  const adminItems = [
+    { label: "Users", href: "/users" },
+    { label: "Roles", href: "/roles" },
+  ];
+
+  // Merge menus based on role.
+  const menuItems = userRole === "admin" ? [...adminItems, ...commonItems] : commonItems;
+
+  // State to control the mobile menu toggle.
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
     <>
       {/* Mobile Navbar */}
-      <div className="md:hidden flex items-center justify-between bg-gray-800 text-white p-4">
-        <div className="text-xl font-bold">My System</div>
-        <button onClick={() => setMobileOpen(!mobileOpen)}>
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
+      <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
+        <div className="text-lg font-bold">My System</div>
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="focus:outline-none"
+          aria-label="Toggle Navigation"
+        >
+          {isMobileOpen ? (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          )}
         </button>
       </div>
-      {mobileOpen && (
-        <div className="md:hidden bg-gray-700 text-white p-4">
-          <nav>
-            <ul>
-              {navItems.map((item, idx) =>
-                item.roles.includes(userRole) ? (
-                  <li key={idx} className="mb-3">
-                    <Link href={item.href}>
-                      <a
-                        onClick={() => setMobileOpen(false)}
-                        className="block hover:underline"
-                      >
-                        {item.label}
-                      </a>
-                    </Link>
-                  </li>
-                ) : null
-              )}
-              <li className="mt-4">
-                <button onClick={() => signOut()} className="hover:underline">
-                  Sign Out
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
+      {isMobileOpen && (
+        <nav className="md:hidden bg-gray-800 text-white px-4 py-2">
+          {menuItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <a
+                className="block py-2 px-4 hover:bg-gray-700 rounded"
+                onClick={() => setIsMobileOpen(false)}
+              >
+                {item.label}
+              </a>
+            </Link>
+          ))}
+        </nav>
       )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-col md:w-64 md:h-screen md:bg-gray-800 md:text-white md:p-4">
-        <div className="text-2xl font-bold mb-8">My System</div>
-        <nav className="flex-1">
-          <ul>
-            {navItems.map((item, idx) =>
-              item.roles.includes(userRole) ? (
-                <li key={idx} className="mb-4">
-                  <Link href={item.href}>
-                    <a className="block hover:bg-gray-700 p-2 rounded">
-                      {item.label}
-                    </a>
-                  </Link>
-                </li>
-              ) : null
-            )}
-          </ul>
+      <aside className="hidden md:block md:w-64 bg-gray-800 text-white min-h-screen p-4">
+        <div className="text-2xl font-bold mb-8 text-center">My System</div>
+        <nav>
+          {menuItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <a className="block py-2 px-4 hover:bg-gray-700 rounded">
+                {item.label}
+              </a>
+            </Link>
+          ))}
         </nav>
-        <div className="mt-auto">
-          <button
-            onClick={() => signOut()}
-            className="w-full text-left p-2 hover:bg-gray-700 rounded"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
+      </aside>
     </>
   );
 };
