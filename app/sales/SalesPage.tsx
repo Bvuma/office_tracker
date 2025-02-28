@@ -1,4 +1,3 @@
-// app/sales/SalesPage.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -35,7 +34,7 @@ export default function SalesPage() {
   const totalPages = Math.ceil(totalSales / limit);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Form states
+  // Form state for create/update
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editSale, setEditSale] = useState<Sale | null>(null);
@@ -44,10 +43,10 @@ export default function SalesPage() {
     amount: "",
     quantity: "",
     dateSold: "",
-    customerId: "", // as string
+    customerId: "", // stored as string, later parsed
   });
 
-  // Fetch sales with pagination and search
+  // Fetch sales with pagination & search
   useEffect(() => {
     async function fetchSales() {
       const res = await fetch(
@@ -75,9 +74,9 @@ export default function SalesPage() {
       }
     }
     fetchCustomers();
-  }, []);
+  }, [formData.customerId]);
 
-  // Handle form field changes
+  // Handle changes for form fields
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -97,9 +96,15 @@ export default function SalesPage() {
       const res = await fetch("/api/sales", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        // Parse numeric fields before sending
+        body: JSON.stringify({
+          ...formData,
+          amount: parseFloat(formData.amount),
+          quantity: parseInt(formData.quantity),
+        }),
       });
       if (res.ok) {
+        // Refresh current page data
         const fetchRes = await fetch(
           `/api/sales?page=${currentPage}&limit=${limit}&search=${encodeURIComponent(searchTerm)}`
         );
@@ -108,6 +113,7 @@ export default function SalesPage() {
           setSales(data.sales);
           setTotalSales(data.total);
         }
+        // Reset form and close the form view
         setFormData({
           title: "",
           amount: "",
@@ -130,7 +136,11 @@ export default function SalesPage() {
       const res = await fetch(`/api/sales/${editSale.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          amount: parseFloat(formData.amount),
+          quantity: parseInt(formData.quantity),
+        }),
       });
       if (res.ok) {
         const updatedSale = await res.json();
@@ -166,14 +176,14 @@ export default function SalesPage() {
     }
   };
 
-  // Prepare form for editing a sale
+  // Prepare form for editing
   const handleEditClick = (sale: Sale) => {
     setEditSale(sale);
     setFormData({
       title: sale.title,
       amount: sale.amount.toString(),
       quantity: sale.quantity.toString(),
-      dateSold: sale.dateSold.slice(0, 16), // Format for datetime-local
+      dateSold: sale.dateSold.slice(0, 16), // adjust for datetime-local input
       customerId: sale.customerId.toString(),
     });
     setIsEditing(true);
@@ -206,15 +216,15 @@ export default function SalesPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Sales Management</h1>
-      
-      {/* Search Input and Create Button */}
-      <div className="mb-4 flex items-center">
+
+      {/* Search and Create Button */}
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center">
         <input
           type="text"
           placeholder="Search by title..."
           value={searchTerm}
           onChange={handleSearchChange}
-          className="border px-2 py-1 w-64 mr-4"
+          className="border px-2 py-1 w-full sm:w-64 mb-2 sm:mb-0 sm:mr-4"
         />
         <button
           onClick={() => {
@@ -228,12 +238,12 @@ export default function SalesPage() {
               customerId: customers[0]?.id.toString() || "",
             });
           }}
-          className="px-4 py-2 bg-blue-500 text-white"
+          className="px-4 py-2 bg-blue-500 text-white w-full sm:w-auto"
         >
           Add New Sale
         </button>
       </div>
-      
+
       {/* Create/Edit Form */}
       {(isCreating || isEditing) && (
         <form
@@ -304,60 +314,114 @@ export default function SalesPage() {
               ))}
             </select>
           </div>
-          <div>
-            <button type="submit" className="mr-2 px-4 py-2 bg-green-500 text-white">
+          <div className="flex space-x-4">
+            <button type="submit" className="px-4 py-2 bg-green-500 text-white">
               {isEditing ? "Update Sale" : "Create Sale"}
             </button>
-            <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-500 text-white">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-4 py-2 bg-gray-500 text-white"
+            >
               Cancel
             </button>
           </div>
         </form>
       )}
-      
-      {/* Sales Table */}
-      <table className="min-w-full border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2">ID</th>
-            <th className="border p-2">Title</th>
-            <th className="border p-2">Amount</th>
-            <th className="border p-2">Quantity</th>
-            <th className="border p-2">Date Sold</th>
-            <th className="border p-2">Customer</th>
-            <th className="border p-2">Created By</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sales.map((sale) => (
-            <tr key={sale.id}>
-              <td className="border p-2">{sale.id}</td>
-              <td className="border p-2">{sale.title}</td>
-              <td className="border p-2">{sale.amount}</td>
-              <td className="border p-2">{sale.quantity}</td>
-              <td className="border p-2">{new Date(sale.dateSold).toLocaleString()}</td>
-              <td className="border p-2">{sale.customer ? sale.customer.c_name : "N/A"}</td>
-              <td className="border p-2">{sale.user ? sale.user.username : "N/A"}</td>
-              <td className="border p-2">
-                <button
-                  onClick={() => handleEditClick(sale)}
-                  className="mr-2 px-2 py-1 bg-yellow-500 text-white"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(sale.id)}
-                  className="px-2 py-1 bg-red-500 text-white"
-                >
-                  Delete
-                </button>
-              </td>
+
+      {/* Sales List */}
+      {/* Table view for screens sm and above */}
+      <div className="hidden sm:block">
+        <table className="min-w-full border">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-2">ID</th>
+              <th className="border p-2">Title</th>
+              <th className="border p-2">Amount</th>
+              <th className="border p-2">Quantity</th>
+              <th className="border p-2">Date Sold</th>
+              <th className="border p-2">Customer</th>
+              <th className="border p-2">Created By</th>
+              <th className="border p-2">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      
+          </thead>
+          <tbody>
+            {sales.map((sale) => (
+              <tr key={sale.id}>
+                <td className="border p-2">{sale.id}</td>
+                <td className="border p-2">{sale.title}</td>
+                <td className="border p-2">{sale.amount}</td>
+                <td className="border p-2">{sale.quantity}</td>
+                <td className="border p-2">{new Date(sale.dateSold).toLocaleString()}</td>
+                <td className="border p-2">
+                  {sale.customer ? sale.customer.c_name : "N/A"}
+                </td>
+                <td className="border p-2">
+                  {sale.user ? sale.user.username : "N/A"}
+                </td>
+                <td className="border p-2">
+                  <button
+                    onClick={() => handleEditClick(sale)}
+                    className="mr-2 px-2 py-1 bg-yellow-500 text-white"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(sale.id)}
+                    className="px-2 py-1 bg-red-500 text-white"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Card view for extra small screens */}
+      <div className="block sm:hidden">
+        {sales.map((sale) => (
+          <div key={sale.id} className="border rounded p-4 mb-4 shadow-sm">
+            <div className="mb-2">
+              <strong>ID:</strong> {sale.id}
+            </div>
+            <div className="mb-2">
+              <strong>Title:</strong> {sale.title}
+            </div>
+            <div className="mb-2">
+              <strong>Amount:</strong> {sale.amount}
+            </div>
+            <div className="mb-2">
+              <strong>Quantity:</strong> {sale.quantity}
+            </div>
+            <div className="mb-2">
+              <strong>Date Sold:</strong> {new Date(sale.dateSold).toLocaleString()}
+            </div>
+            <div className="mb-2">
+              <strong>Customer:</strong> {sale.customer ? sale.customer.c_name : "N/A"}
+            </div>
+            <div className="mb-2">
+              <strong>Created By:</strong> {sale.user ? sale.user.username : "N/A"}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleEditClick(sale)}
+                className="flex-1 px-2 py-1 bg-yellow-500 text-white rounded"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(sale.id)}
+                className="flex-1 px-2 py-1 bg-red-500 text-white rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Pagination Controls */}
       <div className="flex justify-between items-center mt-4">
         <button
